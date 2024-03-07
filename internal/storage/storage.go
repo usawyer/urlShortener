@@ -6,13 +6,13 @@ import (
 )
 
 type Storage struct {
-	database *db.Database
-	cache    *ch.Cache
+	Database db.Database
+	Cache    ch.Cache
 }
 
-func New(db *db.Database, ch *ch.Cache) *Storage {
+func New(db db.Database) *Storage {
 	return &Storage{
-		database: db,
-		cache:    ch,
+		Database: db,
+		Cache:    ch.New(),
 	}
 }

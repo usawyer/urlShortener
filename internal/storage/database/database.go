@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/usawyer/urlShortener/models"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
@@ -13,11 +12,12 @@ import (
 )
 
 type Database interface {
-	AddUrl(string) (string, error)
+	AddUrl(models.Urls) error
 	GetUrl(string) (string, error)
+	FindUrl(string, string) (models.Urls, bool)
 }
 
-type pgClient struct {
+type PgClient struct {
 	db *gorm.DB
 }
 
@@ -29,7 +29,7 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-func New(zapLogger *zap.Logger) *pgClient {
+func New(zapLogger *zap.Logger) Database {
 	connectionParams := map[string]string{
 		"host":     getEnv("DB_HOST", "localhost"),
 		"user":     getEnv("POSTGRES_USER", "postgres"),
@@ -58,28 +58,29 @@ func New(zapLogger *zap.Logger) *pgClient {
 			zapLogger.Error(err.Error())
 		}
 		zapLogger.Info("migrate ok")
-		return &pgClient{db: db}
+		return &PgClient{db: db}
 	}
 	zapLogger.Fatal("Error open db")
 	return nil
 }
 
-func (p *pgClient) AddUrl(url string) (string, error) {
+func (p *PgClient) AddUrl(url models.Urls) error {
 	res := p.db.Create(&url)
-	return "", res.Error
-}
-
-func (p *pgClient) GetUrl(alias string) (string, error) {
-	var article models.Urls
-	res := p.db.First(&article, alias)
-	return "article", res.Error
-}
-
-func (p *pgClient) RemoveArticle(id int) error {
-	res := p.db.Delete(&models.Urls{}, id)
-	if res.Error == nil && res.RowsAffected != 1 {
-		return errors.New("article with such id doesn't exist")
-
-	}
 	return res.Error
+}
+
+func (p *PgClient) GetUrl(alias string) (string, error) {
+	var url models.Urls
+	res := p.db.Where("alias = ?", alias).First(&url)
+	return url.Url, res.Error
+}
+
+func (p *PgClient) FindUrl(str string, columnName string) (models.Urls, bool) {
+	var url models.Urls
+	condition := fmt.Sprintf("%s = ?", columnName)
+	res := p.db.Where(condition, str).Find(&url)
+	if res.RowsAffected == 1 {
+		return url, true
+	}
+	return url, false
 }

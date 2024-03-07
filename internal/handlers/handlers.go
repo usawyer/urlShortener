@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/asaskevich/govalidator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/usawyer/urlShortener/internal/service"
 	"github.com/usawyer/urlShortener/models"
@@ -20,10 +19,6 @@ func (h *Handler) ShortenUrlHandler(c *fiber.Ctx) error {
 
 	if longUrl == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": "no URL found"})
-	}
-
-	if !govalidator.IsURL(longUrl) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": "invalid URL"})
 	}
 
 	alias, err := h.s.ShortenUrl(longUrl)
