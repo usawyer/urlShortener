@@ -23,7 +23,7 @@ This command will start the containers and configure the necessary services.
 The application provides the following API endpoints:
 
 1. URL Addition Endpoint (/a/):
-- Endpoint: http://127.0.0.1:8080/a/?url=
+- Endpoint: `http://127.0.0.1:8080/a/?url=`
 - Description: Allows users to add a URL for shortening. Users submit a long URL through this endpoint, and the service generates a unique eight-character code for it. If the same URL is added again, the service returns the same code.
 - Method: POST
 - Parameters:
