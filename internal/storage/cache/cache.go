@@ -8,7 +8,7 @@ import (
 	"github.com/usawyer/urlShortener/models"
 )
 
-const cacheDuration = 2 * time.Minute
+const cacheDuration = 6 * time.Hour
 
 type Cache interface {
 	AddCache(context.Context, models.Urls) error
