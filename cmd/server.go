@@ -39,10 +39,6 @@ func main() {
 	if err := app.Shutdown(); err != nil {
 		fmt.Println("Error while shutting down:", err)
 	}
+
 	fmt.Println("Server gracefully stopped")
-
 }
-
-//TODO
-// README
-// tests
