@@ -35,7 +35,7 @@ The application provides the following API endpoints:
 ![post](./docs/post.png)
 
 2. Redirection Endpoint (/s/`<code>`):
-- Endpoint: http://127.0.0.1:8080/s/<code>
+- Endpoint: `http://127.0.0.1:8080/s/<code>`
 - Description: Redirects users to the original long URL associated with the provided eight-character code. Accessing this endpoint triggers a 302 redirect to the original URL.
 - Method: GET
 - Parameters:
