@@ -21,7 +21,7 @@ func (h *Handler) ShortenUrlHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": "no URL found"})
 	}
 
-	alias, err := h.s.ShortenUrl(longUrl)
+	alias, err := h.s.ShortenUrl(c.Context(), longUrl)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"Error": err.Error()})
 	}
@@ -32,7 +32,7 @@ func (h *Handler) ShortenUrlHandler(c *fiber.Ctx) error {
 func (h *Handler) ResolveUrlHandler(c *fiber.Ctx) error {
 	alias := c.Params("url")
 
-	longUrl, err := h.s.ResolveUrl(alias)
+	longUrl, err := h.s.ResolveUrl(c.Context(), alias)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"Error": err.Error()})
 	}

@@ -1,5 +1,21 @@
 version: '3.7'
 services:
+  server:
+    build:
+      context: .
+      dockerfile: cmd/Dockerfile
+    container_name: srv
+    env_file:
+      - env/.env
+    environment:
+      - PORT=8080
+      - HOST=0.0.0.0
+    ports:
+      - '8080:8080'
+    depends_on:
+      - db
+      - redis
+
   db:
     image: postgres:15.5-alpine3.18
     restart: always
@@ -13,6 +29,9 @@ services:
   redis:
     image: redis:alpine
     restart: always
+    environment:
+      - REDIS_HOST=redis:6379
+      - REDIS_PASSWORD=redis
     ports:
       - '6379:6379'
 

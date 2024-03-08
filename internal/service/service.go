@@ -4,29 +4,36 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"strings"
+
 	"github.com/asaskevich/govalidator"
 	"github.com/pkg/errors"
 	"github.com/usawyer/urlShortener/internal/storage"
 	"github.com/usawyer/urlShortener/models"
-	"log"
+	"go.uber.org/zap"
 )
 
 const aliasLenght = 8
 
 type Service struct {
 	storage *storage.Storage
+	logger  *zap.Logger
 }
 
-func New(storage *storage.Storage) *Service {
-	return &Service{storage: storage}
+func New(storage *storage.Storage, logger *zap.Logger) *Service {
+	logger = logger.Named("Service")
+	return &Service{
+		storage: storage,
+		logger:  logger,
+	}
 }
 
-func (s *Service) ShortenUrl(url string) (string, error) {
+func (s *Service) ShortenUrl(ctx context.Context, url string) (string, error) {
 	if !govalidator.IsURL(url) {
 		return "", errors.New("invalid URL")
 	}
 
-	ctx := context.Background()
+	url = standardizeUrl(url)
 
 	if data, ok := s.storage.Database.FindUrl(url, "url"); ok {
 		return data.Alias, nil
@@ -46,7 +53,7 @@ func (s *Service) ShortenUrl(url string) (string, error) {
 
 	err := s.storage.Cache.AddCache(ctx, newData)
 	if err != nil {
-		log.Printf("Failed to set value in cache: %v\n\n", err)
+		s.logger.Warn("Failed to set value in cache", zap.Error(err))
 	}
 
 	err = s.storage.Database.AddUrl(newData)
@@ -57,12 +64,11 @@ func (s *Service) ShortenUrl(url string) (string, error) {
 	return alias, nil
 }
 
-func (s *Service) ResolveUrl(alias string) (string, error) {
+func (s *Service) ResolveUrl(ctx context.Context, alias string) (string, error) {
 	if len(alias) != aliasLenght {
 		return "", errors.New("invalid alias input")
 	}
 
-	ctx := context.Background()
 	longUrl, err := s.storage.Cache.GetCache(ctx, alias)
 	if err == nil {
 		return longUrl, nil
@@ -75,8 +81,26 @@ func (s *Service) ResolveUrl(alias string) (string, error) {
 
 	err = s.storage.Cache.AddCache(ctx, models.Urls{Alias: alias, Url: longUrl})
 	if err != nil {
-		log.Printf("Failed to set value in cache: %v\n", err)
+		s.logger.Warn("Failed to set value in cache", zap.Error(err))
 	}
 
 	return longUrl, nil
+}
+
+func standardizeUrl(url string) string {
+	if url[:4] != "http" {
+		genURL := strings.Replace(url, "www.", "", 1)
+		trimGenURL := strings.TrimSuffix(genURL, "/")
+		return "http://" + trimGenURL
+	}
+
+	if url[:5] == "https" {
+		genURL := strings.Replace(url, "www.", "", 1)
+		trimGenURL := strings.TrimSuffix(genURL, "/")
+		return strings.Replace(trimGenURL, "https", "http", 1)
+	}
+
+	genURL := strings.Replace(url, "www.", "", 1)
+	trimGenURL := strings.TrimSuffix(genURL, "/")
+	return trimGenURL
 }

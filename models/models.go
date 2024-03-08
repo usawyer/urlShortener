@@ -5,9 +5,6 @@ type Urls struct {
 	Url   string
 }
 
-type Request struct {
-}
-
 type Response struct {
 	Alias string `json:"alias"`
 }

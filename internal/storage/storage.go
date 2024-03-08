@@ -10,9 +10,9 @@ type Storage struct {
 	Cache    ch.Cache
 }
 
-func New(db db.Database) *Storage {
+func New(ch ch.Cache, db db.Database) *Storage {
 	return &Storage{
 		Database: db,
-		Cache:    ch.New(),
+		Cache:    ch,
 	}
 }
