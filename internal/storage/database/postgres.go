@@ -31,7 +31,7 @@ func New(zapLogger *zap.Logger) Database {
 			zapLogger.Error(err.Error())
 		}
 		zapLogger.Info("migrate ok")
-		return &PgClient{db: db}
+		return &pgClient{db: db}
 	}
 	zapLogger.Fatal("Error open db")
 	return nil
